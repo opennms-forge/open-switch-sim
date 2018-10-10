@@ -117,8 +117,7 @@ public class SNMPDaemon extends BaseAgent implements Runnable{
     }
     
     public static SNMPDaemon createAgentAndRun(URL moFile, String bindAddress) throws InterruptedException {
-        //setupLogging();
-    	LOG.info("Creating Agent....");
+        LOG.info("Creating SNMP Agent....");
     	
         try {
             InputStream in = moFile.openStream();
@@ -161,27 +160,6 @@ public class SNMPDaemon extends BaseAgent implements Runnable{
         return agent;
     }
 
-    /*private static void setupLogging() {
-        if (LogFactory.getLogFactory() == null) {
-            LogFactory.setLogFactory(new ConsoleLogFactory());
-        }
-    }*/
-
-    /*public static void main(String[] args) throws UnknownHostException, MalformedURLException {
-        LogFactory.setLogFactory(new ConsoleLogFactory());
-        AgentConfigData agentConfig = parseCli(args);
-        if (agentConfig == null) {
-            System.err.println("Could not parse configuration.");
-            System.exit(1);
-        }
-        String listenSpec = agentConfig.getListenAddr().getHostAddress() + "/" + agentConfig.getListenPort();
-
-        try {
-        	SNMPDaemon.createAgentAndRun(agentConfig.getMoFile(), listenSpec);
-        } catch (InterruptedException e) {
-            System.exit(0);
-        }
-    }*/
     public static void exec(String[] args)  throws UnknownHostException, MalformedURLException, IOException  {
     	LogFactory.setLogFactory(new ConsoleLogFactory());
     	

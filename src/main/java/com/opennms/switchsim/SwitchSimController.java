@@ -27,7 +27,8 @@ public class SwitchSimController {
 	public String ipAddress;// = "127.0.0.1"; //Initialized with default, will be overwritten after
 	public static int port = 162;
 	public static int agentPort = 161;
-	public static String propMibFile = "mib2_tmp.properties";
+
+    public static String propMibFile = "mib2_stub.properties";
 	private static final Logger LOG = LoggerFactory.getLogger(SwitchSimController.class);
 
 	@Autowired
@@ -46,7 +47,7 @@ public class SwitchSimController {
 		}
 		
 		//Making sure that a dump file is ready
-		LOG.info("delaying letting a dum file be ready or updated");
+		LOG.info("delaying letting a dump file be ready or updated");
 		TimeUnit.SECONDS.sleep(3);
 		LOG.info("Assuming it is already ready");
 		
