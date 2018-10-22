@@ -1,39 +1,121 @@
-# Java Maven CircleCI 2.0 configuration file
 #
-# Check https://circleci.com/docs/2.0/language-java/ for more details
+# CircleCI build config for OpenNMS Switch Simulator
 #
-version: 2
-jobs:
-  build:
+
+version: 2.0
+
+defaults: &defaults
+
+  working_directory: /home/circleci/switch-sim
+
+  workspace_root: &workspace_root
+    .
+
+  attach_workspace: &attach_workspace
+    attach_workspace:
+      at: *workspace_root
+
+references:
+  container_config: &container_config
     docker:
-      - image: circleci/openjdk:8-jdk
+      - image: docker:18.05.0-ce-git
 
-    working_directory: ~/open-switch-sim
+  dockerhub_login: &dockerhub_login
+    run:
+      name: DockerHub Login
+      command: |
+        docker login -u ${DOCKERHUB_LOGIN} -p ${DOCKERHUB_PASS}
 
-    environment:
-      # Customize the JVM maximum heap limit
-      MAVEN_OPTS: -Xmx3200m
-    
+jobs:
+  build_docker_image:
+    <<: *defaults
+    <<: *container_config
+
     steps:
+      - setup_remote_docker
+      - *attach_workspace
       - checkout
-
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "pom.xml" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
-
-      - run: mvn dependency:go-offline
-
-      - save_cache:
+      - run:
+          name: Generate version number for Docker tag
+          command: |
+            DOCKERHUB_TAG=${CIRCLE_BRANCH#release/}
+            DOCKERHUB_TAG=${DOCKERHUB_TAG/\//-}
+            echo ${DOCKERHUB_TAG} > dockertag
+      - run:
+          name: Build Switch-Sim Docker Image
+          command: |
+            docker build -t opennms/switch-sim:$(cat dockertag) .
+      - run:
+          name: Save Docker Container Image as artifact in workspace
+          command: |
+            docker image save opennms/switch-sim:$(cat dockertag) -o opennms/switch-sim
+      - store_artifacts:
+          path: opennms/switch-sim
+      - persist_to_workspace:
+          root: *workspace_root
           paths:
-            - ~/.m2
-          key: v1-dependencies-{{ checksum "pom.xml" }}
-        
-      - setup_remote_docker:
-          docker_layer_caching: true
+            - opennms/switch-sim
+            - dockertag
 
-      # run tests!
-      - run: mvn integration-test
+ publish_dockerhub:
+    <<: *defaults
+    <<: *container_config
+
+    steps:
+      - setup_remote_docker
+      - *attach_workspace
+      - *dockerhub_login
+      - run:
+          name: Load Docker Container Image file
+          command: |
+            docker image load -i opennms/switch-sim
+      - run:
+          name: Set DockerHub project user and ensure lower case
+          command: |
+            if [ -z ${DOCKERHUB_PROJECT_USER+x} ]; then
+                DOCKERHUB_PROJECT_USER=$(echo "${CIRCLE_PROJECT_USERNAME}" | tr '[:upper:]' '[:lower:]')
+                echo "export DOCKERHUB_PROJECT_USER=${DOCKERHUB_PROJECT_USER}" >> ${BASH_ENV}
+                echo "Use CIRCLE_PROJECT_USERNAME instead which is set to ${DOCKERHUB_PROJECT_USER}."
+            else
+                DOCKERHUB_PROJECT_USER=$(echo "${DOCKERHUB_PROJECT_USER}" | tr '[:upper:]' '[:lower:]')
+                echo "export DOCKERHUB_PROJECT_USER=${DOCKERHUB_PROJECT_USER}" >> ${BASH_ENV}
+                echo "Overwrite DOCKERHUB_PROJECT_USER with ${DOCKERHUB_PROJECT_USER}."
+            fi
+      - run:
+          name: Set DockerHub project name and ensure lower case
+          command: |
+            if [ -z ${DOCKERHUB_PROJECT_NAME+x} ]; then
+                DOCKERHUB_PROJECT_NAME=$(echo "${CIRCLE_PROJECT_REPONAME}" | tr '[:upper:]' '[:lower:]')
+                echo "export DOCKERHUB_PROJECT_NAME=${DOCKERHUB_PROJECT_NAME}" >> ${BASH_ENV}
+                echo "Use CIRCLE_PROJECT_REPONAME instead which is set to ${DOCKERHUB_PROJECT_NAME}."
+            else
+                DOCKERHUB_PROJECT_NAME=$(echo "${DOCKERHUB_PROJECT_NAME}" | tr '[:upper:]' '[:lower:]')
+                echo "export DOCKERHUB_PROJECT_NAME=${DOCKERHUB_PROJECT_NAME}" >> ${BASH_ENV}
+                echo "Overwrite DOCKERHUB_PROJECT_NAME with ${DOCKERHUB_PROJECT_NAME}."
+            fi
+      - run:
+          name: Tag Docker Container Images and push to DockerHub
+          command: |
+            case "${CIRCLE_BRANCH}" in
+              master)
+                docker tag opennms/switch-sim:$(cat dockertag) ${DOCKERHUB_PROJECT_USER}/${DOCKERHUB_PROJECT_NAME}:bleeding
+                docker push ${DOCKERHUB_PROJECT_USER}/${DOCKERHUB_PROJECT_NAME}:bleeding
+                ;;
+              *)
+                echo "This is not a branch build which needs to be published"
+                ;;
+            esac
+
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+      - build_docker_image
+      - publish_dockerhub:
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - build_docker_image
 
