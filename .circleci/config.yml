@@ -1,7 +1,6 @@
 #
 # CircleCI build config for OpenNMS Switch Simulator
 #
-
 version: 2.0
 
 defaults: &defaults
