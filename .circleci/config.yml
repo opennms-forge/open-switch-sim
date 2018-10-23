@@ -48,13 +48,13 @@ jobs:
       - run:
           name: Save Docker Container Image as artifact in workspace
           command: |
-            docker image save opennms/switch-sim:$(cat dockertag) -o opennms/switch-sim
+            docker image save opennms/switch-sim:$(cat dockertag) -o switch-sim-image
       - store_artifacts:
-          path: opennms/switch-sim
+          path: switch-sim-image
       - persist_to_workspace:
           root: *workspace_root
           paths:
-            - opennms/switch-sim
+            - switch-sim-image
             - dockertag
 
     publish_dockerhub:
