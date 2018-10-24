@@ -7,9 +7,9 @@ This project simulates an **SNMP agent** for sending traps and managing snmpwalk
 
 Docker image is published to [Docker Hub](https://hub.docker.com/r/opennms/switch-sim/)
 
-You can run it:
+You can run it against your local OpenNMS as follows:
 ```console
-$ docker run -e OPENNMSSERVER_ADDRESS='123.123.123.123' -e OPENNMSSERVER_AGENTPORT=161 -e OPENNMSSERVER_CARDS=4 -e OPENNMSSERVER_PORTS=8 -p 8080:8080  -t opennms/switch-sim
+$ docker run -e OPENNMSSERVER_ADDRESS='127.0.0.1' -e OPENNMSSERVER_AGENTPORT=161 -e OPENNMSSERVER_CARDS=4 -e OPENNMSSERVER_PORTS=8 -p 8080:8080  -t opennms/switch-sim
 ```
 *Notes:*
 
