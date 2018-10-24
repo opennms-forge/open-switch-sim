@@ -36,7 +36,7 @@ jobs:
       - checkout
       - run:
           name: Build the SpringBoot App
-          commamd: |
+          command: |
             mvn install test integration-test
       - run:
           name: Generate version number for Docker tag
