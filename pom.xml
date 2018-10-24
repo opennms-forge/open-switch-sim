@@ -85,7 +85,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                   <repository>switch-sim</repository>
+                   <repository>opennms/switch-sim</repository>
                     <tag>latest</tag>
                     <buildArgs>
                     <JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
