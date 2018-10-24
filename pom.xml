@@ -85,8 +85,8 @@
                     </execution>
                 </executions>
                 <configuration>
-                   <repository>switch-sim-spring-boot-docker</repository>
-                    <tag>${project.version}</tag>
+                   <repository>switch-sim</repository>
+                    <tag>latest</tag>
                     <buildArgs>
                     <JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
                     </buildArgs>

@@ -45,13 +45,9 @@ jobs:
             DOCKERHUB_TAG=${DOCKERHUB_TAG/\//-}
             echo ${DOCKERHUB_TAG} > dockertag
       - run:
-          name: Build Switch-Sim Docker Image
-          command: |
-            docker build -t opennms/switch-sim:$(cat dockertag) .
-      - run:
           name: Save Docker Container Image as artifact in workspace
           command: |
-            docker image save opennms/switch-sim:$(cat dockertag) -o switch-sim-image
+            docker image save switch-sim:latest -o switch-sim-image
       - store_artifacts:
           path: switch-sim-image
       - persist_to_workspace:
