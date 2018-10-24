@@ -43,11 +43,13 @@ jobs:
           command: |
             DOCKERHUB_TAG=${CIRCLE_BRANCH#release/}
             DOCKERHUB_TAG=${DOCKERHUB_TAG/\//-}
-            echo ${DOCKERHUB_TAG} > dockertag
+            # echo ${DOCKERHUB_TAG} > dockertag
+            # Always use 'latest' for now.
+            echo "latest" > dockertag
       - run:
           name: Save Docker Container Image as artifact in workspace
           command: |
-            docker image save switch-sim:latest -o switch-sim-image
+            docker image save switch-sim:$(cat dockertag) -o switch-sim-image
       - store_artifacts:
           path: switch-sim-image
       - persist_to_workspace:
